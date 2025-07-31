@@ -3,9 +3,9 @@ echo "🚀 Running Pre-Commit Hook..."
 # Get the current branch name
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# Prevent commits directly to the "main" branch
-if [ "$CURRENT_BRANCH" = "main" ]; then
-  echo "🚨 You are on the 'main' branch. Please commit to a feature branch instead."
+# Prevent commits directly to the "master" branch
+if [ "$CURRENT_BRANCH" = "master" ]; then
+  echo "🚨 You are on the 'master' branch. Please commit to a feature branch instead."
   exit 1
 fi
 
