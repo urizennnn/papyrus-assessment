@@ -185,25 +185,18 @@
           }
         },
         {
-          "name": "Generate Invite",
+          "name": "Invite Member",
           "request": {
             "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
             "url": {
               "raw": "{{baseUrl}}/groups/:id/invite",
               "host": ["{{baseUrl}}"],
               "path": ["groups", ":id", "invite"]
-            }
-          }
-        },
-        {
-          "name": "Accept Invite",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/groups/:id/accept-invite?code=abc",
-              "host": ["{{baseUrl}}"],
-              "path": ["groups", ":id", "accept-invite"],
-              "query": [{ "key": "code", "value": "abc" }]
             }
           }
         }
@@ -253,6 +246,39 @@
               "raw": "{{baseUrl}}/groups/:id/members/:memberId",
               "host": ["{{baseUrl}}"],
               "path": ["groups", ":id", "members", ":memberId"]
+            }
+          }
+        },
+        {
+          "name": "List Join Requests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/groups/:id/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", ":id", "requests"]
+            }
+          }
+        },
+        {
+          "name": "Approve Request",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/groups/:id/requests/:memberId/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", ":id", "requests", ":memberId", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Request",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/groups/:id/requests/:memberId/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", ":id", "requests", ":memberId", "reject"]
             }
           }
         }

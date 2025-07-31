@@ -1,6 +1,7 @@
 import { registerAs } from '@nestjs/config';
 import { JwtAuthConfig } from './types/jwt-auth.config';
 import { AppConfig } from './types/app.config';
+import { SendGridConfig } from './types/sendgrid.config';
 
 export const AppConfiguration = registerAs(
   'appConfig',
@@ -16,5 +17,13 @@ export const JwtAuthConfiguration = registerAs(
     secretKey: process.env.JWT_SECRET_KEY || 'secret',
     resetPwdSecretKey:
       process.env.RESET_PWD_JWT_SECRET_KEY || 'reset-pwd-secret',
+  }),
+);
+
+export const SendGridConfiguration = registerAs(
+  'sendGridConfig',
+  (): SendGridConfig => ({
+    apiKey: process.env.SENDGRID_API_KEY,
+    fromEmail: process.env.EMAIL_FROM,
   }),
 );

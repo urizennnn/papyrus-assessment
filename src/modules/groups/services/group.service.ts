@@ -5,14 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
+import { v4 as uuidv4 } from 'uuid';
 import { Group } from '../entities/group.entity';
 import { CreateGroupDto } from '../dto/create-group.dto';
-import { v4 as uuidv4 } from 'uuid';
 import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class GroupService {
   private readonly logger = new Logger(GroupService.name);
+
   constructor(
     @InjectRepository(Group) private readonly groups: EntityRepository<Group>,
     private readonly em: EntityManager,
@@ -46,7 +47,7 @@ export class GroupService {
       return groups;
     } catch (error) {
       this.logger.error('Failed to list groups', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Failed to list groups');
     }
   }
 
@@ -69,7 +70,9 @@ export class GroupService {
       return group;
     } catch (error) {
       this.logger.error(`Failed to update group ${group.id}`, error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        `Failed to update group ${group.id}`,
+      );
     }
   }
 
@@ -82,7 +85,9 @@ export class GroupService {
       this.logger.log(`Group soft deleted ${group.id}`);
     } catch (error) {
       this.logger.error(`Failed to delete group ${group.id}`, error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        `Failed to delete group ${group.id}`,
+      );
     }
   }
 
@@ -102,7 +107,7 @@ export class GroupService {
       return groups;
     } catch (error) {
       this.logger.error('Failed to search groups', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Failed to search groups');
     }
   }
 }

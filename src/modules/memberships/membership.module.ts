@@ -7,10 +7,11 @@ import { Group } from '../groups/entities/group.entity';
 import { User } from '../users/entities/user.entity';
 import { GroupService } from '../groups/services/group.service';
 import { UserService } from '../users/services/user.service';
+import { EmailService } from '../../lib/email.service';
 
 @Module({
   imports: [MikroOrmModule.forFeature([Membership, Group, User])],
-  providers: [MembershipService, GroupService, UserService],
+  providers: [MembershipService, GroupService, UserService, EmailService],
   controllers: [MembershipsController],
 })
 export class MembershipModule {}

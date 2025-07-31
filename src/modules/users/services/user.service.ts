@@ -5,13 +5,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
+import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(User) private readonly userRepo: EntityRepository<User>,
     private readonly em: EntityManager,
@@ -27,7 +28,9 @@ export class UserService {
       return user;
     } catch (error) {
       this.logger.error('Failed to create user', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        `Failed to create user ${dto.email}: ${error.message}`,
+      );
     }
   }
 
@@ -37,7 +40,9 @@ export class UserService {
       return await this.userRepo.findOne({ email });
     } catch (error) {
       this.logger.error('Failed to find by email', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        `Failed to find user by email ${email}`,
+      );
     }
   }
 
@@ -47,7 +52,7 @@ export class UserService {
       return await this.userRepo.findOne({ id });
     } catch (error) {
       this.logger.error('Failed to find by id', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(`Failed to find user ${id}`);
     }
   }
 
@@ -60,7 +65,9 @@ export class UserService {
       return user;
     } catch (error) {
       this.logger.error('Failed to update user', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        `Failed to update user ${user.id}: ${error.message}`,
+      );
     }
   }
 
@@ -73,7 +80,9 @@ export class UserService {
       this.logger.log(`User deleted ${user.id}`);
     } catch (error) {
       this.logger.error('Failed to delete user', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(
+        `Failed to delete user ${user.id}: ${error.message}`,
+      );
     }
   }
 }

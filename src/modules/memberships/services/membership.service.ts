@@ -26,6 +26,7 @@ export class MembershipService {
     group: Group,
     user: User,
     role = MembershipRole.MEMBER,
+    status: MembershipStatus = MembershipStatus.ACCEPTED,
   ): Promise<Membership> {
     this.logger.debug(`addMember group=${group.id} user=${user.id}`);
     try {
@@ -43,10 +44,10 @@ export class MembershipService {
           group,
           user,
           role,
-          status: MembershipStatus.ACCEPTED,
+          status,
         });
       } else {
-        membership.status = MembershipStatus.ACCEPTED;
+        membership.status = status;
         membership.role = role;
       }
       await this.em.persistAndFlush(membership);
@@ -56,6 +57,15 @@ export class MembershipService {
       this.logger.error('Failed to add member', error.stack);
       throw new InternalServerErrorException();
     }
+  }
+
+  async inviteMember(group: Group, user: User): Promise<Membership> {
+    return this.addMember(
+      group,
+      user,
+      MembershipRole.MEMBER,
+      MembershipStatus.INVITED,
+    );
   }
 
   async removeMember(membership: Membership): Promise<void> {
@@ -80,6 +90,21 @@ export class MembershipService {
       this.logger.error('Failed to list members', error.stack);
       throw new InternalServerErrorException();
     }
+  }
+
+  async listPending(group: Group): Promise<Membership[]> {
+    return this.members.find({ group, status: MembershipStatus.PENDING });
+  }
+
+  async approveRequest(membership: Membership): Promise<Membership> {
+    membership.status = MembershipStatus.ACCEPTED;
+    await this.em.flush();
+    return membership;
+  }
+
+  async rejectRequest(membership: Membership): Promise<void> {
+    membership.status = MembershipStatus.DECLINED;
+    await this.em.flush();
   }
 
   async findMembership(group: Group, user: User): Promise<Membership | null> {

@@ -489,8 +489,8 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "default": "'invited'",
-          "enumItems": ["invited", "accepted", "declined", "left"],
+          "default": "'pending'",
+          "enumItems": ["pending", "invited", "accepted", "declined", "left"],
           "mappedType": "enum"
         }
       },

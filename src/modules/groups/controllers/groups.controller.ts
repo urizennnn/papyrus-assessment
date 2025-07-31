@@ -9,7 +9,6 @@ import {
   Req,
   UseGuards,
   Logger,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../guards/jwt-auth-guard';
 import { GroupService } from '../services/group.service';
@@ -29,7 +28,7 @@ export class GroupsController {
       return await this.groups.create(dto, req.user as any);
     } catch (error) {
       this.logger.error('Create group failed', error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
@@ -40,7 +39,7 @@ export class GroupsController {
       return await this.groups.findAll(req.user as any);
     } catch (error) {
       this.logger.error('List groups failed', error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
@@ -63,7 +62,7 @@ export class GroupsController {
       return await this.groups.update(group, dto);
     } catch (error) {
       this.logger.error(`Update group ${id} failed`, error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
@@ -77,7 +76,7 @@ export class GroupsController {
       return { success: true };
     } catch (error) {
       this.logger.error(`Remove group ${id} failed`, error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
@@ -89,7 +88,7 @@ export class GroupsController {
       return await this.groups.search(query, req.user as any);
     } catch (error) {
       this.logger.error('Search groups failed', error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 }

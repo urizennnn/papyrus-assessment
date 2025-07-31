@@ -17,6 +17,7 @@ export enum MembershipRole {
 }
 
 export enum MembershipStatus {
+  PENDING = 'pending',
   INVITED = 'invited',
   ACCEPTED = 'accepted',
   DECLINED = 'declined',
@@ -39,5 +40,5 @@ export class Membership extends Timestamp {
   role: MembershipRole = MembershipRole.MEMBER;
 
   @Enum(() => MembershipStatus)
-  status: MembershipStatus = MembershipStatus.INVITED;
+  status: MembershipStatus = MembershipStatus.PENDING;
 }

@@ -7,7 +7,6 @@ import {
   UseGuards,
   Req,
   Logger,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -28,7 +27,7 @@ export class UsersController {
       return await this.users.findById((req.user as any).id);
     } catch (error) {
       this.logger.error('Failed to load profile', error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
@@ -45,7 +44,7 @@ export class UsersController {
       return await this.users.update(user, dto);
     } catch (error) {
       this.logger.error('Failed to update user', error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 
@@ -60,7 +59,7 @@ export class UsersController {
       return { success: true };
     } catch (error) {
       this.logger.error('Failed to delete user', error.stack);
-      throw new InternalServerErrorException();
+      throw error;
     }
   }
 }
