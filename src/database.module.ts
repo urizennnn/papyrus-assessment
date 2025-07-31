@@ -2,7 +2,7 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { DatabaseConfigModule, DatabaseConfigService } from './config';
 import { DatabaseHealthIndicator } from './database.health-indicator';
-import { defineConfig } from '@mikro-orm/mysql';
+import { defineConfig } from '@mikro-orm/postgresql';
 
 @Module({})
 export class DatabaseModule {

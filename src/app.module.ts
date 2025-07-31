@@ -7,6 +7,10 @@ import { TimeoutInterceptor } from './lib/timeout.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { validate } from './env.validator';
 import { DatabaseModule } from './database.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { GroupModule } from './group/group.module';
+import { MembershipModule } from './membership/membership.module';
 
 @Module({
   imports: [
@@ -16,6 +20,10 @@ import { DatabaseModule } from './database.module';
       envFilePath: '.env',
     }),
     DatabaseModule.forRoot(),
+    UserModule,
+    AuthModule,
+    GroupModule,
+    MembershipModule,
   ],
   controllers: [AppController],
   providers: [

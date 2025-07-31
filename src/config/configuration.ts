@@ -10,7 +10,6 @@ export const AppConfiguration = registerAs(
   }),
 );
 
-
 export const JwtAuthConfiguration = registerAs(
   'jwtAuthConfig',
   (): JwtAuthConfig => ({
@@ -19,4 +18,3 @@ export const JwtAuthConfiguration = registerAs(
       process.env.RESET_PWD_JWT_SECRET_KEY || 'reset-pwd-secret',
   }),
 );
-

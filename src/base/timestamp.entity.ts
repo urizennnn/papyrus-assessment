@@ -16,6 +16,9 @@ export abstract class Timestamp {
   })
   updatedAt: Date = new Date();
 
-  @Property({ nullable: true })
+  @Property({ nullable: true, name: 'deleted_at' })
   deletedAt: Date;
+
+  @Property({ default: false, name: 'deleted' })
+  deleted = false;
 }
