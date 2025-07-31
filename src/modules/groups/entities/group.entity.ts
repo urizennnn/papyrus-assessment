@@ -19,4 +19,10 @@ export class Group extends Timestamp {
 
   @ManyToOne(() => User)
   owner: User;
+
+  @Property({ default: 50 })
+  capacity = 50;
+
+  @Property({ name: 'invite_code', nullable: true })
+  inviteCode?: string;
 }

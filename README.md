@@ -54,3 +54,7 @@ Open API docs at `http://localhost:8080/docs`.
 - `PATCH /users/me` – update profile
 - `POST /groups` – create a group
 - `GET /groups` – list groups
+
+## Logging & Error Handling
+
+All controllers and services use a class-scoped `Logger`. Methods log `debug` on entry and `info` on success. Expected failures are logged with `warn` and unexpected errors with `error` before throwing an `InternalServerErrorException`.

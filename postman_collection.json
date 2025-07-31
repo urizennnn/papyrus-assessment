@@ -126,7 +126,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"My Group\",\n  \"description\": \"Test\"\n}"
+              "raw": "{\n  \"name\": \"My Group\",\n  \"description\": \"Test\",\n  \"isPrivate\": false,\n  \"capacity\": 50\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/groups",
@@ -181,6 +181,29 @@
               "raw": "{{baseUrl}}/groups/:id",
               "host": ["{{baseUrl}}"],
               "path": ["groups", ":id"]
+            }
+          }
+        },
+        {
+          "name": "Generate Invite",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/groups/:id/invite",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", ":id", "invite"]
+            }
+          }
+        },
+        {
+          "name": "Accept Invite",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/groups/:id/accept-invite?code=abc",
+              "host": ["{{baseUrl}}"],
+              "path": ["groups", ":id", "accept-invite"],
+              "query": [{ "key": "code", "value": "abc" }]
             }
           }
         }

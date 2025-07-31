@@ -11,4 +11,7 @@ export class CreateGroupDto {
   @IsOptional()
   @IsBoolean()
   isPrivate?: boolean;
+
+  @IsOptional()
+  capacity?: number;
 }
