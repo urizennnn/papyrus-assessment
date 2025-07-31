@@ -7,8 +7,12 @@ export class RequestLoggerMiddleware implements NestMiddleware {
   private logger = new Logger('request-logger');
 
   public use(req: Request, res: Response, next: Function) {
-    res.on('close', () => {
-      this.logger.log(`${req.method} ${req.originalUrl} ${req.statusCode}`);
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      this.logger.log(
+        `${req.method} ${req.originalUrl} ${res.statusCode} +${duration}ms`,
+      );
     });
     next();
   }
