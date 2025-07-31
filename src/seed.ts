@@ -1,12 +1,12 @@
 import { MikroORM } from '@mikro-orm/postgresql';
 import mikroConfig from './mikro-orm.config';
-import { User } from './user/entities/user.entity';
-import { Group } from './group/entities/group.entity';
+import { User } from './modules/users/entities/user.entity';
+import { Group } from './modules/groups/entities/group.entity';
 import {
   Membership,
   MembershipRole,
   MembershipStatus,
-} from './membership/entities/membership.entity';
+} from './modules/memberships/entities/membership.entity';
 
 async function run() {
   const orm = await MikroORM.init(mikroConfig);
