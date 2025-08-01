@@ -9,6 +9,11 @@ import { customAlphabet } from 'nanoid';
 import { Group } from '../entities/group.entity';
 import { CreateGroupDto } from '../dto/create-group.dto';
 import { User } from '../../users/entities/user.entity';
+import {
+  Membership,
+  MembershipRole,
+  MembershipStatus,
+} from '../../memberships/entities/membership.entity';
 
 @Injectable()
 export class GroupService {
@@ -21,6 +26,8 @@ export class GroupService {
 
   constructor(
     @InjectRepository(Group) private readonly groups: EntityRepository<Group>,
+    @InjectRepository(Membership)
+    private readonly memberships: EntityRepository<Membership>,
     private readonly em: EntityManager,
   ) {}
 
@@ -43,7 +50,15 @@ export class GroupService {
       if (group.isPrivate && !group.inviteCode) {
         group.inviteCode = await this.generateInviteCode();
       }
+      group.memberCount = 1;
+      const membership = this.memberships.create({
+        group,
+        user: owner,
+        role: MembershipRole.ADMIN,
+        status: MembershipStatus.ACCEPTED,
+      });
       await this.em.persistAndFlush(group);
+      await this.em.persistAndFlush(membership);
       this.logger.log(`Group created ${group.id}`);
       return group;
     } catch (error) {

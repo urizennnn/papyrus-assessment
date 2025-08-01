@@ -5,7 +5,8 @@ import {
   UseGuards,
   Req,
   Logger,
-  InternalServerErrorException,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../guards/jwt-auth-guard';
 import { MembershipService } from '../services/membership.service';
@@ -33,11 +34,11 @@ export class InvitesController {
     try {
       const group = await this.groups.findByInviteCode(code);
       if (!group || !group.isPrivate) {
-        throw new InternalServerErrorException('Invalid invite code');
+        throw new BadRequestException('Invalid invite code');
       }
       const user = await this.users.findById((req.user as any).id);
       if (!user) {
-        throw new InternalServerErrorException('User not found');
+        throw new NotFoundException('User not found');
       }
       const membership = await this.memberships.addMember(
         group,

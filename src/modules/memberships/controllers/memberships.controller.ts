@@ -48,13 +48,13 @@ export class MembershipsController {
       const group = await this.groups.findOneOrFail(id);
       if (group.isPrivate) {
         this.logger.warn(`Attempt to join private group ${id}`);
-        throw new InternalServerErrorException('Group is private');
+        throw new BadRequestException('Group is private');
       }
       const user = await this.users.findById((req.user as any).id);
       const membership = await this.memberships.findMembership(group, user!);
       if (membership) {
         this.logger.warn(`User ${user!.id} already a member of group ${id}`);
-        throw new InternalServerErrorException('Already a member');
+        throw new BadRequestException('Already a member');
       }
       const result = await this.memberships.addMember(
         group,

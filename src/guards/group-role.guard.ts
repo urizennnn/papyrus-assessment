@@ -26,6 +26,7 @@ export class GroupRoleGuard implements CanActivate {
     const user = request.user as any;
     const groupId = request.params.id;
     if (!user || !groupId) {
+      console.warn('User or group id not found in request');
       return false;
     }
     const membership = await this.memberships.findMembershipByIds(

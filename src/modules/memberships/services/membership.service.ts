@@ -107,7 +107,7 @@ export class MembershipService {
       this.logger.log(`Member removed ${membership.id}`);
     } catch (error) {
       this.logger.error('Failed to remove member', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Failed to remove member');
     }
   }
 
@@ -119,7 +119,7 @@ export class MembershipService {
       return members;
     } catch (error) {
       this.logger.error('Failed to list members', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Failed to list members');
     }
   }
 
@@ -129,6 +129,9 @@ export class MembershipService {
 
   async approveRequest(membership: Membership): Promise<Membership> {
     if (membership.status !== MembershipStatus.ACCEPTED) {
+      if (membership.group.memberCount >= membership.group.capacity) {
+        throw new BadRequestException('Group is full');
+      }
       membership.status = MembershipStatus.ACCEPTED;
       membership.group.memberCount++;
       await this.em.flush();
@@ -137,6 +140,9 @@ export class MembershipService {
   }
 
   async rejectRequest(membership: Membership): Promise<void> {
+    if (membership.status === MembershipStatus.ACCEPTED) {
+      membership.group.memberCount--;
+    }
     membership.status = MembershipStatus.DECLINED;
     await this.em.flush();
   }
@@ -170,7 +176,7 @@ export class MembershipService {
       this.logger.log(`Member left ${membership.id}`);
     } catch (error) {
       this.logger.error('Failed to leave membership', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Failed to leave membership');
     }
   }
 }

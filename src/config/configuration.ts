@@ -24,6 +24,6 @@ export const SendGridConfiguration = registerAs(
   'sendGridConfig',
   (): SendGridConfig => ({
     apiKey: process.env.SENDGRID_API_KEY,
-    fromEmail: process.env.EMAIL_FROM,
+    fromEmail: process.env.VERIFIED_EMAIL,
   }),
 );
