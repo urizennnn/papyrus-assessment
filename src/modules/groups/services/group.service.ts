@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
-import { v4 as uuidv4 } from 'uuid';
+import { customAlphabet } from 'nanoid';
 import { Group } from '../entities/group.entity';
 import { CreateGroupDto } from '../dto/create-group.dto';
 import { User } from '../../users/entities/user.entity';
@@ -14,10 +14,23 @@ import { User } from '../../users/entities/user.entity';
 export class GroupService {
   private readonly logger = new Logger(GroupService.name);
 
+  private readonly codeGen = customAlphabet(
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+    6,
+  );
+
   constructor(
     @InjectRepository(Group) private readonly groups: EntityRepository<Group>,
     private readonly em: EntityManager,
   ) {}
+
+  private async generateInviteCode(): Promise<string> {
+    let code: string;
+    do {
+      code = this.codeGen();
+    } while ((await this.groups.count({ inviteCode: code })) > 0);
+    return code;
+  }
 
   async create(dto: CreateGroupDto, owner: User): Promise<Group> {
     this.logger.debug(`create dto=${JSON.stringify(dto)}`);
@@ -28,7 +41,7 @@ export class GroupService {
         owner,
       });
       if (group.isPrivate && !group.inviteCode) {
-        group.inviteCode = uuidv4();
+        group.inviteCode = await this.generateInviteCode();
       }
       await this.em.persistAndFlush(group);
       this.logger.log(`Group created ${group.id}`);
@@ -37,6 +50,10 @@ export class GroupService {
       this.logger.error('Failed to create group', error.stack);
       throw new InternalServerErrorException('Failed to create group');
     }
+  }
+
+  async findByInviteCode(code: string): Promise<Group | null> {
+    return this.groups.findOne({ inviteCode: code, deleted: false });
   }
 
   async findAll(owner: User): Promise<Group[]> {
@@ -91,13 +108,12 @@ export class GroupService {
     }
   }
 
-  async search(query: string, owner: User): Promise<Group[]> {
-    this.logger.debug(`search query=${query} owner=${owner.id}`);
+  async search(query: string): Promise<Group[]> {
+    this.logger.debug(`search query=${query}`);
     try {
       const groups = await this.groups.find(
         {
           name: { $like: `%${query}%` },
-          owner,
           isPrivate: false,
           deleted: false,
         },

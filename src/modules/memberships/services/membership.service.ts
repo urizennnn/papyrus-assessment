@@ -2,6 +2,8 @@ import {
   Injectable,
   Logger,
   InternalServerErrorException,
+  BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityRepository, EntityManager } from '@mikro-orm/core';
@@ -30,13 +32,26 @@ export class MembershipService {
   ): Promise<Membership> {
     this.logger.debug(`addMember group=${group.id} user=${user.id}`);
     try {
-      const count = await this.members.count({
-        group,
-        status: MembershipStatus.ACCEPTED,
-      });
-      if (count >= group.capacity) {
+      if (
+        group.memberCount >= group.capacity &&
+        status === MembershipStatus.ACCEPTED
+      ) {
         this.logger.warn('Group capacity full');
-        throw new InternalServerErrorException('Group capacity full');
+        throw new BadRequestException('Group capacity full');
+      }
+
+      const existing = await this.members.findOne({
+        user,
+        status: {
+          $in: [
+            MembershipStatus.ACCEPTED,
+            MembershipStatus.PENDING,
+            MembershipStatus.INVITED,
+          ],
+        },
+      });
+      if (existing && existing.group.id !== group.id) {
+        throw new BadRequestException('User already in a group');
       }
       let membership = await this.members.findOne({ group, user });
       if (!membership) {
@@ -46,31 +61,47 @@ export class MembershipService {
           role,
           status,
         });
+        if (status === MembershipStatus.ACCEPTED) {
+          group.memberCount++;
+        }
       } else {
+        const prevStatus = membership.status;
         membership.status = status;
         membership.role = role;
+        if (
+          prevStatus !== MembershipStatus.ACCEPTED &&
+          status === MembershipStatus.ACCEPTED
+        ) {
+          group.memberCount++;
+        }
       }
       await this.em.persistAndFlush(membership);
       this.logger.log(`Member added ${membership.id}`);
       return membership;
     } catch (error) {
+      if (error instanceof HttpException) {
+        this.logger.warn('Bad request while adding member', error.message);
+        throw error;
+      }
       this.logger.error('Failed to add member', error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Failed to add member');
     }
   }
 
-  async inviteMember(group: Group, user: User): Promise<Membership> {
-    return this.addMember(
-      group,
-      user,
-      MembershipRole.MEMBER,
-      MembershipStatus.INVITED,
-    );
+  async inviteMember(
+    group: Group,
+    user: User,
+    role = MembershipRole.MEMBER,
+  ): Promise<Membership> {
+    return this.addMember(group, user, role, MembershipStatus.INVITED);
   }
 
   async removeMember(membership: Membership): Promise<void> {
     this.logger.debug(`removeMember id=${membership.id}`);
     try {
+      if (membership.status === MembershipStatus.ACCEPTED) {
+        membership.group.memberCount--;
+      }
       this.em.remove(membership);
       await this.em.flush();
       this.logger.log(`Member removed ${membership.id}`);
@@ -97,8 +128,11 @@ export class MembershipService {
   }
 
   async approveRequest(membership: Membership): Promise<Membership> {
-    membership.status = MembershipStatus.ACCEPTED;
-    await this.em.flush();
+    if (membership.status !== MembershipStatus.ACCEPTED) {
+      membership.status = MembershipStatus.ACCEPTED;
+      membership.group.memberCount++;
+      await this.em.flush();
+    }
     return membership;
   }
 
@@ -111,6 +145,16 @@ export class MembershipService {
     return this.members.findOne({ group, user });
   }
 
+  async findMembershipByIds(
+    groupId: string,
+    userId: string,
+  ): Promise<Membership | null> {
+    return this.members.findOne({
+      group: groupId,
+      user: userId,
+    });
+  }
+
   async findById(id: string): Promise<Membership | null> {
     return this.members.findOne({ id });
   }
@@ -118,6 +162,9 @@ export class MembershipService {
   async leaveMembership(membership: Membership): Promise<void> {
     this.logger.debug(`leaveMembership id=${membership.id}`);
     try {
+      if (membership.status === MembershipStatus.ACCEPTED) {
+        membership.group.memberCount--;
+      }
       membership.status = MembershipStatus.LEFT;
       await this.em.flush();
       this.logger.log(`Member left ${membership.id}`);

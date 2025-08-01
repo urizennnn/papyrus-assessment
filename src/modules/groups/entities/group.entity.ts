@@ -23,6 +23,9 @@ export class Group extends Timestamp {
   @Property({ default: 50 })
   capacity = 50;
 
+  @Property({ name: 'member_count', default: 0 })
+  memberCount = 0;
+
   @Property({ name: 'invite_code', nullable: true })
   inviteCode?: string;
 }

@@ -363,6 +363,16 @@
           "default": "50",
           "mappedType": "integer"
         },
+        "member_count": {
+          "name": "member_count",
+          "type": "int",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "0",
+          "mappedType": "integer"
+        },
         "invite_code": {
           "name": "invite_code",
           "type": "varchar(255)",

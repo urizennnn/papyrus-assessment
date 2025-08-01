@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   Logger,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../guards/jwt-auth-guard';
 import { GroupService } from '../services/group.service';
@@ -39,6 +40,17 @@ export class GroupsController {
       return await this.groups.findAll(req.user as any);
     } catch (error) {
       this.logger.error('List groups failed', error.stack);
+      throw error;
+    }
+  }
+  @Get('search')
+  async search(@Query('q') q: string) {
+    this.logger.debug('search groups');
+    try {
+      const query = q as string;
+      return await this.groups.search(query);
+    } catch (error) {
+      this.logger.error('Search groups failed', error.stack);
       throw error;
     }
   }
@@ -76,18 +88,6 @@ export class GroupsController {
       return { success: true };
     } catch (error) {
       this.logger.error(`Remove group ${id} failed`, error.stack);
-      throw error;
-    }
-  }
-
-  @Get('search')
-  async search(@Req() req: Request) {
-    this.logger.debug('search groups');
-    try {
-      const query = req.query.q as string;
-      return await this.groups.search(query, req.user as any);
-    } catch (error) {
-      this.logger.error('Search groups failed', error.stack);
       throw error;
     }
   }

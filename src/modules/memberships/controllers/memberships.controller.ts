@@ -9,18 +9,29 @@ import {
   Req,
   Logger,
   InternalServerErrorException,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../guards/jwt-auth-guard';
+import { GroupRoleGuard } from '../../../guards/group-role.guard';
+import {
+  GroupAdmin,
+  GroupMember,
+} from '../../../decorators/group-roles.decorator';
 import { MembershipService } from '../services/membership.service';
 import { GroupService } from '../../groups/services/group.service';
 import { UserService } from '../../users/services/user.service';
-import { MembershipStatus } from '../entities/membership.entity';
+import {
+  MembershipStatus,
+  MembershipRole,
+} from '../entities/membership.entity';
+import { InviteMemberDto } from '../dto/invite-member.dto';
 import { Request } from 'express';
 import { EmailService } from '../../../lib/email.service';
 import { TransformationType } from 'class-transformer';
 
 @Controller('groups/:id')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, GroupRoleGuard)
 export class MembershipsController {
   private readonly logger = new Logger(MembershipsController.name);
   constructor(
@@ -60,6 +71,7 @@ export class MembershipsController {
   }
 
   @Post('leave')
+  @GroupMember()
   async leave(@Param('id') id: string, @Req() req: Request) {
     this.logger.debug(`leave group=${id}`);
     try {
@@ -78,6 +90,7 @@ export class MembershipsController {
   }
 
   @Get('members')
+  @GroupAdmin()
   async members(@Param('id') id: string) {
     this.logger.debug(`members group=${id}`);
     try {
@@ -90,19 +103,28 @@ export class MembershipsController {
   }
 
   @Post('invite')
-  async invite(@Param('id') id: string, @Body('email') email: string) {
-    this.logger.debug(`invite ${email} to group=${id}`);
+  @GroupAdmin()
+  async invite(@Param('id') id: string, @Body() dto: InviteMemberDto) {
+    this.logger.debug(`invite ${dto.email} to group=${id}`);
     try {
       const group = await this.groups.findOneOrFail(id);
       if (!group.isPrivate) {
-        throw new InternalServerErrorException('Group must be private');
+        throw new BadRequestException('Group must be private');
       }
-      const user = await this.users.findByEmail(email);
+      const user = await this.users.findByEmail(dto.email);
       if (!user) {
-        throw new InternalServerErrorException('User not found');
+        throw new NotFoundException('User not found');
       }
-      const membership = await this.memberships.inviteMember(group, user);
-      await this.emails.sendInviteEmail(email, group.name, group.inviteCode!);
+      const membership = await this.memberships.inviteMember(
+        group,
+        user,
+        dto.role ?? MembershipRole.MEMBER,
+      );
+      await this.emails.sendInviteEmail(
+        dto.email,
+        group.name,
+        group.inviteCode!,
+      );
       return membership;
     } catch (error) {
       this.logger.error('Failed to invite member', error.stack);
@@ -111,12 +133,14 @@ export class MembershipsController {
   }
 
   @Get('requests')
+  @GroupAdmin()
   async requests(@Param('id') id: string) {
     const group = await this.groups.findOneOrFail(id);
     return this.memberships.listPending(group);
   }
 
   @Post('requests/:memberId/approve')
+  @GroupAdmin()
   async approve(@Param('id') id: string, @Param('memberId') memberId: string) {
     try {
       const group = await this.groups.findOneOrFail(id);
@@ -131,6 +155,7 @@ export class MembershipsController {
   }
 
   @Post('requests/:memberId/reject')
+  @GroupAdmin()
   async reject(@Param('id') id: string, @Param('memberId') memberId: string) {
     try {
       const group = await this.groups.findOneOrFail(id);
@@ -146,6 +171,7 @@ export class MembershipsController {
   }
 
   @Delete('members/:memberId')
+  @GroupAdmin()
   async remove(@Param('id') id: string, @Param('memberId') memberId: string) {
     this.logger.debug(`remove member=${memberId} from group=${id}`);
     try {
